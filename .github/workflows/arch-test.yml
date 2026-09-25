@@ -1,0 +1,61 @@
+name: Architecture Test
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  arch-test:
+    name: ARM architecture tests
+    runs-on: ubuntu-24.04-arm
+
+    container:
+      image: docker.io/debian:unstable
+
+    env:
+      DEBIAN_FRONTEND: noninteractive
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install arch-test
+        run: |
+          apt-get update
+          apt-get install -y --no-install-recommends arch-test
+
+      - name: Inspect CPU and binfmt
+        shell: bash
+        run: |
+          set +e
+
+          echo "=== uname ==="
+          uname -a
+
+          echo
+          echo "=== lscpu ==="
+          lscpu
+
+          echo
+          echo "=== BINFMT_MISC kernel config ==="
+          zgrep BINFMT_MISC /proc/config.gz || true
+
+          echo
+          echo "=== binfmt_misc mount ==="
+          findmnt binfmt_misc || true
+
+          echo
+          echo "=== binfmt_misc registrations ==="
+          ls -la /proc/sys/fs/binfmt_misc/ || true
+
+          echo
+          echo "=== binfmt_misc details ==="
+          tail -v -n +1 /proc/sys/fs/binfmt_misc/* 2>/dev/null || true
+
+      - name: Run ARM architecture tests
+        shell: bash
+        run: ./scripts/run-arch-tests.sh
