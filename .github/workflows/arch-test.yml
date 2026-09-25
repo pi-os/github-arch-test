@@ -58,4 +58,6 @@ jobs:
 
       - name: Run ARM architecture tests
         shell: bash
-        run: ./scripts/run-arch-tests.sh
+        run: |
+          chmod +x scripts/run-arch-tests.sh
+          ./scripts/run-arch-tests.sh
